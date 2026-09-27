@@ -1,0 +1,163 @@
+.about-section {
+  --about-accent: #FF8C00;
+  padding: clamp(76px, 9vw, 132px) 5vw;
+  background: #080808;
+  color: #f5f5f5;
+  border-top: 1px solid #ffffff0a;
+}
+
+.about-container {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr);
+  grid-template-areas: "left center right";
+  align-items: center;
+  gap: clamp(18px, 2vw, 32px);
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.about-container > * { min-width: 0; }
+.about-center { grid-area: center; position: relative; padding: 0px 44px; }
+.about-content { position: relative; z-index: 1; text-align: center; }
+
+.about-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin: 0 0 26px;
+  color: #BCB7B0;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+}
+
+.about-label::before,
+.about-label::after {
+  content: "";
+  width: 24px;
+  height: 1px;
+  background: #FF8C0066;
+}
+
+.about-heading {
+  margin: 0 0 25px;
+  font-size: clamp(34px, 3.6vw, 51px);
+  font-weight: 500;
+  line-height: 1.16;
+  letter-spacing: -0.045em;
+}
+
+.about-heading span { color: var(--about-accent); }
+.about-description { max-width: 370px; margin: 0 auto; color: #a0a0a0; font-size: 13px; line-height: 1.9; }
+
+.about-work-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 15px;
+  min-height: 44px;
+  margin-top: 26px;
+  border-bottom: 1px solid #FF8C0066;
+  color: #EDE6DE;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  transition: color 0.25s, border-color 0.25s;
+}
+
+.about-work-link span { font-size: 18px; }
+.about-work-link:hover { color: var(--about-accent); border-color: var(--about-accent); }
+.about-work-link:focus-visible { outline: 2px solid var(--about-accent); outline-offset: 5px; }
+
+/* Only the outer edges of each ellipse are visible, keeping the text clear. */
+.about-curves { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.about-curve-reveal { position: absolute; top: 0; bottom: 0; width: 36px; overflow: hidden; }
+.about-curve-left { left: 0; }
+.about-curve-right { right: 0; transform: scaleX(-1); }
+.about-arc {
+  position: absolute;
+  left: 2px;
+  top: 3%;
+  width: 460px;
+  height: 94%;
+  border: 1px solid #FF8C00b3;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #FF8C0030, inset 0 0 8px #FF8C0020;
+}
+.about-arc-inner { left: 15px; top: 8%; height: 84%; border-color: #FF8C0080; }
+.about-curve-dot { position: absolute; width: 5px; height: 5px; border-radius: 50%; background: #FF8C00; box-shadow: 0 0 9px #FF8C0099; }
+.about-dot-left { left: 4px; top: 43%; }
+.about-dot-right { right: 4px; bottom: 43%; }
+
+/* Gentle movement on the arcs leaves GSAP's entrance reveal independent. */
+@media (prefers-reduced-motion: no-preference) {
+  .about-arc { animation: about-curve-drift 6s ease-in-out infinite alternate; }
+  .about-arc-inner { animation-delay: -3s; animation-duration: 7s; }
+  .about-curve-right .about-arc { animation-delay: -2s; }
+  .about-curve-right .about-arc-inner { animation-delay: -5s; }
+  .about-curve-dot { animation: about-dot-drift 6s ease-in-out infinite alternate; }
+  .about-dot-right { animation-delay: -3s; }
+}
+
+@keyframes about-curve-drift {
+  from { transform: translateY(-4px) scaleY(0.98); }
+  to { transform: translateY(4px) scaleY(1.02); }
+}
+
+@keyframes about-dot-drift {
+  from { transform: translateY(-10px); }
+  to { transform: translateY(10px); }
+}
+
+.about-cards { display: grid; gap: 22px; }
+.about-cards-left { grid-area: left; }
+.about-cards-right { grid-area: right; }
+.about-card {
+  min-height: 202px;
+  padding: 25px 22px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: #0c0c0c;
+}
+.about-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.about-card-top svg { color: var(--about-accent); }
+.about-card-top span { color: #777; font-size: 10px; letter-spacing: 0.08em; }
+.about-card h3 { margin: 0 0 10px; color: #f5f5f5; font-size: 15px; font-weight: 500; line-height: 1.5; letter-spacing: -0.025em; }
+.about-card p { margin: 0; color: #a0a0a0; font-size: 12px; line-height: 1.8; }
+
+@media (min-width: 761px) and (max-width: 1050px) {
+  .about-section { padding: 80px 3vw; }
+  .about-container { grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr) minmax(0, 1fr); gap: 15px; }
+  .about-center { padding: 36px 25px; }
+  .about-heading { font-size: 34px; }
+  .about-description { font-size: 12px; }
+  .about-curve-reveal { width: 20px; }
+  .about-card { padding: 20px 16px; min-height: 220px; }
+  .about-card h3 { font-size: 14px; }
+}
+
+@media (max-width: 760px) {
+  .about-curves {
+    display: none;
+  }
+
+  .about-section { padding: 68px 22px; }
+  .about-container { grid-template-columns: minmax(0, 1fr); grid-template-areas: "center" "left" "right"; gap: 20px; max-width: 480px; }
+  .about-center { padding: 0; }
+  .about-heading { font-size: clamp(34px, 8vw, 44px); }
+  .about-description { max-width: 370px; }
+  .about-curves { position: relative; height: 140px; width: min(100%, 330px); margin: 30px auto 4px; }
+  .about-curve-reveal { width: 50%; }
+  .about-arc { width: 320px; height: 126px; top: 7px; left: 3px; }
+  .about-arc-inner { width: 290px; height: 106px; top: 17px; left: 18px; }
+  .about-dot-left { left: 6px; }
+  .about-dot-right { right: 6px; }
+  .about-cards { gap: 20px; }
+  .about-card { min-height: 0; padding: 26px; }
+  .about-card-top { margin-bottom: 20px; }
+  .about-card h3 { font-size: 16px; }
+  .about-card p { font-size: 13px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .about-work-link { transition: none; }
+}
