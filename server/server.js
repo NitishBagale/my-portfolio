@@ -1,12 +1,13 @@
 const express = require("express");
-const cors = require("cors")
+const cors = require("cors");
 const { Pool } = require("pg");
 require("dotenv").config();
 
 const app = express();
+
 app.use(
   cors({
-    origin:"https://nitishbagale.vercel.app",
+    origin: "https://nitishbagale.vercel.app",
   })
 );
 
@@ -47,6 +48,22 @@ app.get("/api/test-db", async (req, res) => {
     res.status(500).json({
       message: "Database connection failed",
       error: error.message,
+    });
+  }
+});
+
+app.get("/api/messages", async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM messages ORDER BY created_at DESC"
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Error fetching messages:", error.message);
+
+    res.status(500).json({
+      message: "Failed to fetch messages",
     });
   }
 });
