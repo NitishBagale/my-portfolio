@@ -32,7 +32,7 @@ export default function Contact() {
     setStatus("sending");
     setFeedback("");
     try {
-      const response = await fetch("/api/messages", {
+      const response = await fetch("https://my-portfolio-xj70.onrender.com/api/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
