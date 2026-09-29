@@ -98,8 +98,23 @@ test("Navbar and Footer routes protect writes and preserve full content through 
     }
     assert.equal((await request("footer", { email: "invalid" })).status, 400);
     assert.equal((await request("footer", { whatsapp: "abc" })).status, 400);
-    delete stored.navbar;
-    assert.equal((await fetch(`${base}/api/content/navbar`)).status, 404);
+    for (const section of ["navbar", "footer"]) {
+      delete stored[section];
+      const originalQuery = pool.query;
+      pool.query = async (sql, params) => {
+        assert.ok(sql.startsWith("SELECT"), "Fallback reads must never write to the database");
+        return originalQuery(sql, params);
+      };
+      const response = await fetch(`${base}/api/content/${section}`);
+      assert.equal(response.status, 200);
+      assert.deepEqual(await response.json(), defaults[section]);
+      assert.equal(stored[section], undefined);
+      // Preserve the existing admin behavior for missing CMS records.
+      assert.equal((await fetch(`${base}/api/admin/content/${section}`, {
+        headers: { Authorization: "Bearer test-admin" },
+      })).status, 404);
+      pool.query = originalQuery;
+    }
   } finally {
     await new Promise((resolve) => server.close(resolve));
   }

@@ -1,5 +1,7 @@
 ﻿const { contentUpdateHandler, schemas } = require("./content-update");
 
+const defaults = require("../client/src/data/navigation-footer.json");
+
 const footerStrings = [
   "contactHeading",
   "emailLabel",
@@ -110,12 +112,16 @@ function validateNavigationContent(req, res, next) {
 
 function registerNavigationRoutes(app, pool, authenticateAdmin) {
   for (const section of ["navbar", "footer"]) {
-    const read = async (_req, res) => {
+    const read = (useDefaults = false) => async (_req, res) => {
       try {
         const result = await pool.query(
           "SELECT content FROM site_content WHERE section = $1",
           [section],
         );
+        // Use the existing frontend defaults without writing database records.
+        if (!result.rows.length && useDefaults) {
+          return res.json(defaults[section]);
+        }
         if (!result.rows.length)
           return res
             .status(404)
@@ -128,8 +134,8 @@ function registerNavigationRoutes(app, pool, authenticateAdmin) {
         res.status(500).json({ message: `Failed to fetch ${section} content` });
       }
     };
-    app.get(`/api/content/${section}`, read);
-    app.get(`/api/admin/content/${section}`, authenticateAdmin, read);
+    app.get(`/api/content/${section}`, read(true));
+    app.get(`/api/admin/content/${section}`, authenticateAdmin, read());
     app.put(
       `/api/admin/content/${section}`,
       authenticateAdmin,
