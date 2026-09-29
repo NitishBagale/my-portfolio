@@ -1,19 +1,60 @@
-﻿import { ArrowUpRight, Mail } from "lucide-react";
+import { normalizeHero } from "../config/content";
+import { API_URL } from "../config/api";
+import { useEffect, useState } from "react";
+import { ArrowUpRight, Mail } from "lucide-react";
 import Navbar from "./Navbar";
 import "./Banner.css";
 
 export default function Hero() {
+  const [hero, setHero] = useState({
+    name: "NITISH BAGALE",
+    secondaryButton: "Contact",
+    description:
+      "I’m a web developer turning ideas into clean, responsive websites. I bring thoughtful design and smooth interactions together to create experiences that feel simple and natural.",
+    primaryButton: "View my work",
+    buttonUrl: "#projects",
+  });
+
+  useEffect(() => {
+    const fetchHero = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/content/hero`);
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch hero content");
+        }
+
+        const data = await response.json();
+
+        setHero((current) => ({
+          ...current,
+          ...normalizeHero(data.content ?? data),
+        }));
+      } catch (error) {
+        console.error("Hero content error:", error);
+      }
+    };
+
+    fetchHero();
+  }, []);
+
+  const titleParts = hero.name.trim().split(/\s+/);
+
+  const firstName = titleParts[0] ?? "";
+  const lastName = titleParts.slice(1).join(" ");
+
   return (
     <>
       <section id="home" className="photo-banner" aria-label="Nitish portfolio">
         <img
           className="photo-banner-image"
-          src="/images/nitish.jpg"
+          src={hero.image || "/images/nitish.jpg"}
           alt="Nitish Bagale"
           fetchPriority="high"
           width="1080"
           height="607"
         />
+
         <div className="banner-detail-layer" aria-hidden="true">
           <span className="banner-cross banner-cross-one">+</span>
           <span className="banner-cross banner-cross-two">+</span>
@@ -35,26 +76,35 @@ export default function Hero() {
         <Navbar />
 
         <div className="banner-introduction">
+         
           <h1>
-            Nitish
+            {firstName}
             <br />
-            <span className="banner-name-accent">Bagale</span>
+            <span className="banner-name-accent">{lastName}</span>
           </h1>
-          <p>
-            I’m a web developer turning ideas into clean, responsive websites. I
-            bring thoughtful design and smooth interactions together to create
-            experiences that feel simple and natural.
-          </p>
+
+          <p>{hero.description}</p>
 
           <div className="banner-actions">
-            <a className="banner-button banner-button-primary" href="#projects">
-              View my work
-              <ArrowUpRight size={18} aria-hidden="true" />
-            </a>
-            <a className="banner-button banner-button-outline" href="#contact">
-              Contact
-              <Mail size={17} aria-hidden="true" />
-            </a>
+            {hero.primaryButton && (
+              <a
+                className="banner-button banner-button-primary"
+                href={hero.buttonUrl}
+              >
+                {hero.primaryButton}
+                <ArrowUpRight size={18} aria-hidden="true" />
+              </a>
+            )}
+
+            {hero.secondaryButton && (
+              <a
+                className="banner-button banner-button-outline"
+                href={hero.secondaryButtonUrl ?? "#contact"}
+              >
+                {hero.secondaryButton}
+                <Mail size={17} aria-hidden="true" />
+              </a>
+            )}
           </div>
         </div>
       </section>

@@ -1,4 +1,6 @@
 const express = require("express");
+const { registerNavigationRoutes } = require("./navigation-routes");
+const { contentUpdateHandler } = require("./content-update");
 const cors = require("cors");
 const { Pool } = require("pg");
 const bcrypt = require("bcrypt");
@@ -373,6 +375,23 @@ app.get("/api/content/contact", async (req, res) => {
    PUBLIC PROJECTS
 ========================= */
 
+const defaultProjectsContent = require("../client/src/data/projects-content.json");
+const readProjectsContent = async (_req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT content FROM site_content WHERE section = $1", ["projects"]
+    );
+    res.json({ ...defaultProjectsContent, ...result.rows[0]?.content });
+  } catch (error) {
+    console.error("Error fetching projects content:", error.message);
+    res.status(500).json({ message: "Failed to fetch projects section content" });
+  }
+};
+app.get("/api/content/projects", readProjectsContent);
+app.get("/api/admin/content/projects", authenticateAdmin, readProjectsContent);
+app.put("/api/admin/content/projects", authenticateAdmin,
+  contentUpdateHandler(pool, "projects", { createIfMissing: true }));
+
 app.get("/api/projects", async (req, res) => {
   try {
     const result = await pool.query(
@@ -429,70 +448,7 @@ app.get(
   }
 );
 
-app.put(
-  "/api/admin/content/hero",
-  authenticateAdmin,
-  async (req, res) => {
-    const {
-      title,
-      description,
-      buttonText,
-      buttonUrl,
-      image,
-    } = req.body;
-
-    if (
-      !title ||
-      !description ||
-      !buttonText ||
-      !buttonUrl ||
-      !image
-    ) {
-      return res.status(400).json({
-        message: "All hero fields are required",
-      });
-    }
-
-    try {
-      const result = await pool.query(
-        `UPDATE site_content
-         SET content = $1::jsonb,
-             updated_at = CURRENT_TIMESTAMP
-         WHERE section = 'hero'
-         RETURNING content`,
-        [
-          JSON.stringify({
-            title,
-            description,
-            buttonText,
-            buttonUrl,
-            image,
-          }),
-        ]
-      );
-
-      if (result.rows.length === 0) {
-        return res.status(404).json({
-          message: "Hero content not found",
-        });
-      }
-
-      res.json({
-        message: "Hero content updated successfully",
-        content: result.rows[0].content,
-      });
-    } catch (error) {
-      console.error(
-        "Error updating Hero content:",
-        error.message
-      );
-
-      res.status(500).json({
-        message: "Failed to update hero content",
-      });
-    }
-  }
-);
+app.put("/api/admin/content/hero", authenticateAdmin, contentUpdateHandler(pool, "hero"));
 
 /* =========================
    ADMIN ABOUT CONTENT
@@ -527,73 +483,7 @@ app.get(
   }
 );
 
-app.put(
-  "/api/admin/content/about",
-  authenticateAdmin,
-  async (req, res) => {
-    const {
-      topLabel,
-      heading,
-      description,
-      buttonText,
-      buttonUrl,
-      cards,
-    } = req.body;
-
-    if (
-      !topLabel ||
-      !heading ||
-      !description ||
-      !buttonText ||
-      !buttonUrl ||
-      !Array.isArray(cards)
-    ) {
-      return res.status(400).json({
-        message: "All About fields are required",
-      });
-    }
-
-    try {
-      const result = await pool.query(
-        `UPDATE site_content
-         SET content = $1::jsonb,
-             updated_at = CURRENT_TIMESTAMP
-         WHERE section = 'about'
-         RETURNING content`,
-        [
-          JSON.stringify({
-            topLabel,
-            heading,
-            description,
-            buttonText,
-            buttonUrl,
-            cards,
-          }),
-        ]
-      );
-
-      if (result.rows.length === 0) {
-        return res.status(404).json({
-          message: "About content not found",
-        });
-      }
-
-      res.json({
-        message: "About content updated successfully",
-        content: result.rows[0].content,
-      });
-    } catch (error) {
-      console.error(
-        "Error updating About content:",
-        error.message
-      );
-
-      res.status(500).json({
-        message: "Failed to update About content",
-      });
-    }
-  }
-);
+app.put("/api/admin/content/about", authenticateAdmin, contentUpdateHandler(pool, "about"));
 
 /* =========================
    ADMIN SKILLS CONTENT
@@ -628,73 +518,7 @@ app.get(
   }
 );
 
-app.put(
-  "/api/admin/content/skills",
-  authenticateAdmin,
-  async (req, res) => {
-    const {
-      topLabel,
-      kicker,
-      heading,
-      description,
-      learningText,
-      groups,
-    } = req.body;
-
-    if (
-      !topLabel ||
-      !kicker ||
-      !heading ||
-      !description ||
-      !learningText ||
-      !Array.isArray(groups)
-    ) {
-      return res.status(400).json({
-        message: "All Skills fields are required",
-      });
-    }
-
-    try {
-      const result = await pool.query(
-        `UPDATE site_content
-         SET content = $1::jsonb,
-             updated_at = CURRENT_TIMESTAMP
-         WHERE section = 'skills'
-         RETURNING content`,
-        [
-          JSON.stringify({
-            topLabel,
-            kicker,
-            heading,
-            description,
-            learningText,
-            groups,
-          }),
-        ]
-      );
-
-      if (result.rows.length === 0) {
-        return res.status(404).json({
-          message: "Skills content not found",
-        });
-      }
-
-      res.json({
-        message: "Skills content updated successfully",
-        content: result.rows[0].content,
-      });
-    } catch (error) {
-      console.error(
-        "Error updating Skills content:",
-        error.message
-      );
-
-      res.status(500).json({
-        message: "Failed to update Skills content",
-      });
-    }
-  }
-);
+app.put("/api/admin/content/skills", authenticateAdmin, contentUpdateHandler(pool, "skills"));
 
 /* =========================
    ADMIN CONTACT CONTENT
@@ -729,115 +553,7 @@ app.get(
   }
 );
 
-app.put(
-  "/api/admin/content/contact",
-  authenticateAdmin,
-  async (req, res) => {
-    const {
-      topLabel,
-      heading,
-      badge,
-      mainTitle,
-      mainTitleAccent,
-      description,
-      noteTitle,
-      noteDescription,
-      signature,
-      signatureAccent,
-      formLabel,
-      formTitle,
-      nameLabel,
-      namePlaceholder,
-      emailLabel,
-      emailPlaceholder,
-      messageLabel,
-      messagePlaceholder,
-      submitText,
-      formHint,
-    } = req.body;
-
-    if (
-      !topLabel ||
-      !heading ||
-      !badge ||
-      !mainTitle ||
-      !mainTitleAccent ||
-      !description ||
-      !noteTitle ||
-      !noteDescription ||
-      !signature ||
-      !signatureAccent ||
-      !formLabel ||
-      !formTitle ||
-      !nameLabel ||
-      !namePlaceholder ||
-      !emailLabel ||
-      !emailPlaceholder ||
-      !messageLabel ||
-      !messagePlaceholder ||
-      !submitText ||
-      !formHint
-    ) {
-      return res.status(400).json({
-        message: "All Contact fields are required",
-      });
-    }
-
-    try {
-      const result = await pool.query(
-        `UPDATE site_content
-         SET content = $1::jsonb,
-             updated_at = CURRENT_TIMESTAMP
-         WHERE section = 'contact'
-         RETURNING content`,
-        [
-          JSON.stringify({
-            topLabel,
-            heading,
-            badge,
-            mainTitle,
-            mainTitleAccent,
-            description,
-            noteTitle,
-            noteDescription,
-            signature,
-            signatureAccent,
-            formLabel,
-            formTitle,
-            nameLabel,
-            namePlaceholder,
-            emailLabel,
-            emailPlaceholder,
-            messageLabel,
-            messagePlaceholder,
-            submitText,
-            formHint,
-          }),
-        ]
-      );
-
-      if (result.rows.length === 0) {
-        return res.status(404).json({
-          message: "Contact content not found",
-        });
-      }
-
-      res.json({
-        message: "Contact content updated successfully",
-        content: result.rows[0].content,
-      });
-    } catch (error) {
-      console.error(
-        "Error updating Contact content:",
-        error.message
-      );
-
-      res.status(500).json({
-        message: "Failed to update Contact content",
-      });
-    }
-  }
-);
+app.put("/api/admin/content/contact", authenticateAdmin, contentUpdateHandler(pool, "contact"));
 
 /* =========================
    ADMIN PROJECTS
@@ -1072,6 +788,8 @@ app.delete(
 /* =========================
    START SERVER
 ========================= */
+
+registerNavigationRoutes(app, pool, authenticateAdmin);
 
 const PORT = process.env.PORT || 5000;
 

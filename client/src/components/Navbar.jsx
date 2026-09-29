@@ -1,10 +1,13 @@
 ﻿import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 
-const links = ["Home", "About", "Skills", "Projects", "Contact"];
+import defaults from "../data/navigation-footer.json";
+import { usePublicContent } from "../hooks/usePublicContent";
 
 export default function Navbar() {
   const nav = useRef(null);
+  const content = usePublicContent("navbar", defaults.navbar);
+  const links = content.links;
   const [activeSection, setActiveSection] = useState("home");
 
   useEffect(() => {
@@ -22,8 +25,10 @@ export default function Navbar() {
       },
     );
 
-    links.forEach((label) => {
-      const section = document.getElementById(label.toLowerCase());
+    links.forEach(({ href }) => {
+      const section = href.startsWith("#")
+        ? document.getElementById(href.slice(1))
+        : null;
 
       if (section) {
         observer.observe(section);
@@ -31,7 +36,7 @@ export default function Navbar() {
     });
 
     return () => observer.disconnect();
-  }, []);
+  }, [links]);
 
   useLayoutEffect(() => {
     const media = gsap.matchMedia();
@@ -55,18 +60,14 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav
-      ref={nav}
-      className="banner-navigation"
-      aria-label="Main navigation"
-    >
-      {links.map((label) => {
-        const id = label.toLowerCase();
+    <nav ref={nav} className="banner-navigation" aria-label={content.ariaLabel}>
+      {links.map(({ label, href }, index) => {
+        const id = href.startsWith("#") ? href.slice(1) : null;
 
         return (
           <a
-            key={label}
-            href={`#${id}`}
+            key={`${href}-${index}`}
+            href={href}
             aria-current={activeSection === id ? "location" : undefined}
           >
             {label}

@@ -1,103 +1,17 @@
-﻿import { useState } from "react";
+import { API_URL } from "../config/api";
+import { useEffect, useState } from "react";
 import { Atom, Wind, GitBranch, Code, ArrowRight } from "lucide-react";
 import "./Skills.css";
+import { defaultSkillGroups } from "../data/portfolio-defaults";
 
-const groups = [
-  {
-    id: "skills-frontend",
-    label: "FRONTEND",
-    number: "01 / 03",
-    skills: [
-      {
-        name: "HTML & CSS",
-        logo: "html-css",
-        description: "Semantic structure and responsive styling for the web.",
-        tag: "HTML5 / CSS3",
-      },
-      {
-        name: "JavaScript",
-        logo: "js",
-        description: "Brings interactivity and logic to the web.",
-        tag: "ES6+",
-      },
-      {
-        name: "React",
-        logo: "react",
-        description: "Component-based UI development.",
-        tag: "React",
-      },
-      {
-        name: "Tailwind CSS",
-        logo: "tailwind",
-        description: "Utility-first CSS for faster design.",
-        tag: "Tailwind",
-      },
-    ],
-  },
-  {
-    id: "skills-design",
-    label: "DESIGN",
-    number: "02 / 03",
-    skills: [
-      {
-        name: "Figma",
-        logo: "figma",
-        description: "Designing clean and user-friendly interfaces.",
-        tag: "Figma",
-      },
-      {
-        name: "UI / UX",
-        logo: "design",
-        description: "Creating simple and beautiful experiences.",
-        tag: "Design",
-      },
-      {
-        name: "Photoshop",
-        logo: "ps",
-        description: "Editing and creating visuals and assets.",
-        tag: "Photoshop",
-      },
-      {
-        name: "Illustrator",
-        logo: "ai",
-        description: "Vector graphics and brand elements.",
-        tag: "Illustrator",
-      },
-    ],
-  },
-  {
-    id: "skills-backend",
-    label: "BACKEND & TOOLS",
-    number: "03 / 03",
-    skills: [
-      {
-        name: "Node.js",
-        logo: "node",
-        description: "Server-side development with JavaScript.",
-        tag: "Node.js",
-      },
-      {
-        name: "Git",
-        logo: "git",
-        id: "skills-tools",
-        description: "Version control for better workflow.",
-        tag: "Git",
-      },
-      {
-        name: "GitHub",
-        logo: "github",
-        description: "Code hosting and collaboration.",
-        tag: "GitHub",
-      },
-      {
-        name: "VS Code",
-        logo: "vscode",
-        description: "My main code editor for development.",
-        tag: "VS Code",
-      },
-    ],
-  },
-];
+const defaultSkills = {
+  topLabel: "03 / SKILLS",
+  kicker: "WHAT I WORK WITH",
+  heading: "Tools & Technologies",
+  description: "I use modern tools and technologies to build fast, responsive and beautiful web experiences.",
+  learningText: "Always learning, always improving.",
+  groups: defaultSkillGroups,
+};
 
 function TechnologyLogo({ type }) {
   if (type === "html-css") {
@@ -108,6 +22,7 @@ function TechnologyLogo({ type }) {
       </span>
     );
   }
+
   const icons = {
     react: Atom,
     tailwind: Wind,
@@ -115,7 +30,9 @@ function TechnologyLogo({ type }) {
     git: GitBranch,
     vscode: Code,
   };
+
   const Icon = icons[type];
+
   if (type === "github") {
     return (
       <svg
@@ -128,6 +45,7 @@ function TechnologyLogo({ type }) {
       </svg>
     );
   }
+
   if (type === "figma") {
     return (
       <svg className="toolkit-logo" viewBox="0 0 30 45" aria-hidden="true">
@@ -139,6 +57,7 @@ function TechnologyLogo({ type }) {
       </svg>
     );
   }
+
   if (type === "node") {
     return (
       <svg className="toolkit-logo" viewBox="0 0 40 44" aria-hidden="true">
@@ -154,6 +73,7 @@ function TechnologyLogo({ type }) {
       </svg>
     );
   }
+
   if (type === "html" || type === "css") {
     return (
       <svg
@@ -176,15 +96,34 @@ function TechnologyLogo({ type }) {
       </svg>
     );
   }
-  if (Icon)
+
+  if (Icon) {
     return (
-      <span className={`toolkit-logo toolkit-logo--${type}`} aria-hidden="true">
-        <Icon size={40} strokeWidth={type === "react" ? 1.3 : 1.8} />
+      <span
+        className={`toolkit-logo toolkit-logo--${type}`}
+        aria-hidden="true"
+      >
+        <Icon
+          size={40}
+          strokeWidth={type === "react" ? 1.3 : 1.8}
+        />
       </span>
     );
-  const text = { js: "JS", ps: "Ps", ai: "Ai", node: "JS", express: "ex" };
+  }
+
+  const text = {
+    js: "JS",
+    ps: "Ps",
+    ai: "Ai",
+    node: "JS",
+    express: "ex",
+  };
+
   return (
-    <span className={`toolkit-logo toolkit-logo--${type}`} aria-hidden="true">
+    <span
+      className={`toolkit-logo toolkit-logo--${type}`}
+      aria-hidden="true"
+    >
       {text[type]}
     </span>
   );
@@ -197,12 +136,24 @@ function SkillGroup({ id, label, number, skills }) {
         <h3>{label}</h3>
         <span>{number}</span>
       </div>
-      <ul className="toolkit-tiles" style={{ "--columns": skills.length }}>
+
+      <ul
+        className="toolkit-tiles"
+        style={{ "--columns": skills.length }}
+      >
         {skills.map((skill) => (
-          <li className="toolkit-tile" key={skill.name} id={skill.id}>
+          <li
+            className="toolkit-tile"
+            key={skill.name}
+            id={skill.id}
+          >
             <TechnologyLogo type={skill.logo} />
+
             <h4>{skill.name}</h4>
-            <span className="toolkit-skill-tag">{skill.tag}</span>
+
+            <span className="toolkit-skill-tag">
+              {skill.tag}
+            </span>
           </li>
         ))}
       </ul>
@@ -212,6 +163,45 @@ function SkillGroup({ id, label, number, skills }) {
 
 export default function Skills() {
   const [activeCategory, setActiveCategory] = useState("Frontend");
+
+  const [skillsContent, setSkillsContent] = useState(defaultSkills);
+
+  useEffect(() => {
+    const fetchSkills = async () => {
+      try {
+        const response = await fetch(
+          `${API_URL}/api/content/skills`
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch skills content");
+        }
+
+        const data = await response.json();
+
+        setSkillsContent({ ...defaultSkills, ...(data.content ?? data) });
+      } catch (error) {
+        console.error("Error loading skills:", error);
+      }
+    };
+
+    fetchSkills();
+  }, []);
+
+  const {
+    topLabel,
+    kicker,
+    heading,
+    description,
+    learningText,
+    groups,
+  } = skillsContent;
+
+  const headingParts = heading.split(" ");
+
+  const firstHeadingPart = headingParts.slice(0, 2).join(" ");
+  const secondHeadingPart = headingParts.slice(2).join(" ");
+
   return (
     <section
       id="skills"
@@ -221,20 +211,28 @@ export default function Skills() {
       <div className="toolkit-layout">
         <header className="toolkit-introduction">
           <p className="toolkit-eyebrow">
-            03 / SKILLS
+            {topLabel}
             <span aria-hidden="true" />
           </p>
-          <p className="toolkit-kicker">WHAT I WORK WITH</p>
-          <h2 id="skills-heading">
-            Tools &amp;
-            <br />
-            <span>Technologies</span>
-          </h2>
-          <p className="toolkit-intro">
-            I use modern tools and technologies to build fast, responsive and
-            beautiful web experiences.
+
+          <p className="toolkit-kicker">
+            {kicker}
           </p>
-          <nav className="toolkit-categories" aria-label="Skill categories">
+
+          <h2 id="skills-heading">
+            {firstHeadingPart}
+            <br />
+            <span>{secondHeadingPart}</span>
+          </h2>
+
+          <p className="toolkit-intro">
+            {description}
+          </p>
+
+          <nav
+            className="toolkit-categories"
+            aria-label="Skill categories"
+          >
             {[
               ["Frontend", "skills-frontend"],
               ["Design", "skills-design"],
@@ -245,27 +243,35 @@ export default function Skills() {
                 href={`#${target}`}
                 key={label}
                 onClick={() => setActiveCategory(label)}
-                aria-current={activeCategory === label ? "true" : undefined}
+                aria-current={
+                  activeCategory === label
+                    ? "true"
+                    : undefined
+                }
               >
                 <span aria-hidden="true" />
                 {label}
               </a>
             ))}
           </nav>
+
           <div className="toolkit-learning">
             <span aria-hidden="true">
               <ArrowRight size={23} />
             </span>
+
             <p>
-              Always learning,
-              <br />
-              always improving.
+              {learningText}
             </p>
           </div>
         </header>
+
         <div className="toolkit-groups">
           {groups.map((group) => (
-            <SkillGroup key={group.id} {...group} />
+            <SkillGroup
+              key={group.id}
+              {...group}
+            />
           ))}
         </div>
       </div>

@@ -5,13 +5,27 @@ import Projects from "./components/Projects";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import BackToTop from "./components/BacktoTop";
+import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./pages/AdminDashboard";
 import "./layout.css";
+
 export default function App() {
+  const path = window.location.pathname;
+
+  if (path === "/admin/login") {
+    return <AdminLogin />;
+  }
+
+  if (path === "/admin/dashboard") {
+    return <AdminDashboard />;
+  }
+
   return (
     <>
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
+
       <main id="main-content">
         <Hero />
         <About />
@@ -19,6 +33,7 @@ export default function App() {
         <Projects />
         <Contact />
       </main>
+
       <Footer />
       <BackToTop />
     </>
