@@ -1,50 +1,13 @@
-﻿import { useEffect, useState } from "react";
 import { ArrowUpRight } from "lucide-react";
 import Section from "./Section";
 import "./Project-showcase.css";
 
-import { API_URL } from "../config/api";
+import { useCmsContent } from "../hooks/publicCmsContext";
 import defaults from "../data/projects-content.json";
-import { defaultProjects } from "../data/portfolio-defaults";
 
 export default function Projects() {
-  const [content, setContent] = useState(defaults);
-  const [projects, setProjects] = useState(defaultProjects);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    fetch(`${API_URL}/api/content/projects`, { signal: controller.signal })
-      .then((response) => {
-        if (!response.ok) throw new Error("Failed to fetch projects section content");
-        return response.json();
-      })
-      .then((data) => setContent({ ...defaults, ...data }))
-      .catch((error) => {
-        if (error.name !== "AbortError") console.error(error);
-      });
-    return () => controller.abort();
-  }, []);
-
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const response = await fetch(`${API_URL}/api/projects`);
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch projects");
-        }
-
-        const data = await response.json();
-
-        if (!Array.isArray(data)) throw new Error("Invalid projects response");
-        setProjects(data);
-      } catch (error) {
-        console.error("Error fetching projects:", error);
-      }
-    };
-
-    fetchProjects();
-  }, []);
+  const content = { ...defaults, ...useCmsContent("projects") };
+  const projects = useCmsContent("projectCards");
 
   return (
     <Section

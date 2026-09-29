@@ -1,42 +1,21 @@
 import { normalizeHero } from "../config/content";
-import { API_URL } from "../config/api";
-import { useEffect, useState } from "react";
+import { useCmsContent } from "../hooks/publicCmsContext";
+
 import { ArrowUpRight, Mail } from "lucide-react";
 import Navbar from "./Navbar";
 import "./Banner.css";
 
 export default function Hero() {
-  const [hero, setHero] = useState({
+  const cmsHero = useCmsContent("hero");
+  const hero = {
     name: "NITISH BAGALE",
     secondaryButton: "Contact",
     description:
       "I’m a web developer turning ideas into clean, responsive websites. I bring thoughtful design and smooth interactions together to create experiences that feel simple and natural.",
     primaryButton: "View my work",
     buttonUrl: "#projects",
-  });
-
-  useEffect(() => {
-    const fetchHero = async () => {
-      try {
-        const response = await fetch(`${API_URL}/api/content/hero`);
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch hero content");
-        }
-
-        const data = await response.json();
-
-        setHero((current) => ({
-          ...current,
-          ...normalizeHero(data.content ?? data),
-        }));
-      } catch (error) {
-        console.error("Hero content error:", error);
-      }
-    };
-
-    fetchHero();
-  }, []);
+    ...normalizeHero(cmsHero),
+  };
 
   const titleParts = hero.name.trim().split(/\s+/);
 

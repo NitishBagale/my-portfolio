@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
   ArrowUpRight,
   CheckCircle2,
@@ -10,6 +10,7 @@ import Section from "./Section";
 import "./Contact.css";
 
 import { API_URL } from "../config/api";
+import { useCmsContent } from "../hooks/publicCmsContext";
 
 const defaultContent = {
   topLabel: "CONTACT",
@@ -36,34 +37,11 @@ const defaultContent = {
 };
 
 export default function Contact() {
-  const [content, setContent] = useState(defaultContent);
+  const content = { ...defaultContent, ...useCmsContent("contact") };
   const [status, setStatus] = useState("idle");
   const [feedback, setFeedback] = useState("");
   const submitting = useRef(false);
   const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    const fetchContact = async () => {
-      try {
-        const response = await fetch(`${API_URL}/api/content/contact`);
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch contact content");
-        }
-
-        const data = await response.json();
-
-        setContent({
-          ...defaultContent,
-          ...data,
-        });
-      } catch (error) {
-        console.error("Error fetching contact content:", error);
-      }
-    };
-
-    fetchContact();
-  }, []);
 
   async function handleSubmit(event) {
     event.preventDefault();

@@ -1,5 +1,5 @@
-import { API_URL } from "../config/api";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCmsContent } from "../hooks/publicCmsContext";
+import { useLayoutEffect, useRef } from "react";
 import {
   CodeXml,
   Monitor,
@@ -96,35 +96,7 @@ function AboutCurves() {
 export default function About() {
   const sectionRef = useRef(null);
 
-  const [about, setAbout] = useState(defaultAbout);
-
-  /* =========================
-     FETCH ABOUT CONTENT
-  ========================= */
-
-  useEffect(() => {
-    const fetchAbout = async () => {
-      try {
-        const response = await fetch(
-          `${API_URL}/api/content/about`
-        );
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(
-            data.message || "Failed to fetch About content"
-          );
-        }
-
-        setAbout({ ...defaultAbout, ...(data.content ?? data) });
-      } catch (error) {
-        console.error("Error fetching About content:", error);
-      }
-    };
-
-    fetchAbout();
-  }, []);
+  const about = { ...defaultAbout, ...useCmsContent("about") };
 
   /* =========================
      GSAP ANIMATION

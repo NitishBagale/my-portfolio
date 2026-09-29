@@ -1,5 +1,5 @@
-import { API_URL } from "../config/api";
-import { useEffect, useState } from "react";
+import { useCmsContent } from "../hooks/publicCmsContext";
+import { useState } from "react";
 import { Atom, Wind, GitBranch, Code, ArrowRight } from "lucide-react";
 import "./Skills.css";
 import { defaultSkillGroups } from "../data/portfolio-defaults";
@@ -164,29 +164,7 @@ function SkillGroup({ id, label, number, skills }) {
 export default function Skills() {
   const [activeCategory, setActiveCategory] = useState("Frontend");
 
-  const [skillsContent, setSkillsContent] = useState(defaultSkills);
-
-  useEffect(() => {
-    const fetchSkills = async () => {
-      try {
-        const response = await fetch(
-          `${API_URL}/api/content/skills`
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch skills content");
-        }
-
-        const data = await response.json();
-
-        setSkillsContent({ ...defaultSkills, ...(data.content ?? data) });
-      } catch (error) {
-        console.error("Error loading skills:", error);
-      }
-    };
-
-    fetchSkills();
-  }, []);
+  const skillsContent = { ...defaultSkills, ...useCmsContent("skills") };
 
   const {
     topLabel,
