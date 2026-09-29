@@ -117,6 +117,9 @@ export default function AdminDashboard() {
   ========================= */
 
   const [messages, setMessages] = useState([]);
+  const [deletingMessage, setDeletingMessage] = useState(null);
+  const [messageDeleteError, setMessageDeleteError] = useState("");
+  const [messageDeleteSuccess, setMessageDeleteSuccess] = useState("");
   const [projects, setProjects] = useState([]);
 
   const [hero, setHero] = useState(defaultHero);
@@ -3261,6 +3264,40 @@ export default function AdminDashboard() {
      MESSAGES PAGE
   ========================= */
 
+  const handleMessageDelete = async (message = null) => {
+    if (deletingMessage !== null) return;
+    const deleteAll = message === null;
+    if (!window.confirm(deleteAll
+      ? "Permanently delete all messages? This cannot be undone."
+      : `Permanently delete the message from ${message.name}? This cannot be undone.`)) return;
+
+    setDeletingMessage(deleteAll ? "all" : message.id);
+    setMessageDeleteError("");
+    setMessageDeleteSuccess("");
+    try {
+      const response = await fetch(
+        `${API_URL}/api/messages${deleteAll ? "" : `/${encodeURIComponent(message.id)}`}`,
+        { method: "DELETE", headers: authHeaders }
+      );
+      if (response.status === 401 || response.status === 403) {
+        throw new Error("Your session has expired or lacks permission. Please log in again.");
+      }
+      if (!response.headers.get("content-type")?.includes("application/json")) {
+        throw new Error(response.status === 404 || response.status === 405
+          ? "The connected backend does not have the message delete route. Deploy the latest server code to Render, or connect Vite to your updated local backend."
+          : `The server returned an unexpected response (HTTP ${response.status}). Please try again shortly.`);
+      }
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Unable to delete messages.");
+      setMessages((current) => deleteAll ? [] : current.filter((item) => item.id !== message.id));
+      setMessageDeleteSuccess(data.message);
+    } catch (err) {
+      setMessageDeleteError(err.message || "Unable to delete messages. Please try again.");
+    } finally {
+      setDeletingMessage(null);
+    }
+  };
+
   const renderMessagesPage = () => {
     return (
       <div className="space-y-8">
@@ -3279,7 +3316,19 @@ export default function AdminDashboard() {
           <p className="text-gray-400 mt-2">
             Messages received through your website.
           </p>
+          <button
+            type="button"
+            onClick={() => handleMessageDelete()}
+            disabled={messages.length === 0 || deletingMessage !== null}
+            className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          >
+            <Trash2 size={16} />
+            {deletingMessage === "all" ? "Deleting all..." : "Delete all messages"}
+          </button>
         </div>
+
+        {messageDeleteError && <p role="alert" className="text-red-400">{messageDeleteError}</p>}
+        {messageDeleteSuccess && <p role="status" className="text-green-400">{messageDeleteSuccess}</p>}
 
         {messages.length === 0 ? (
           <div className="bg-[#101010] border border-white/10 rounded-2xl p-10 text-center">
@@ -3332,6 +3381,16 @@ export default function AdminDashboard() {
                 <p className="text-gray-400 leading-relaxed whitespace-pre-wrap">
                   {message.message}
                 </p>
+                <button
+                  type="button"
+                  onClick={() => handleMessageDelete(message)}
+                  disabled={deletingMessage !== null}
+                  aria-label={`Delete message from ${message.name}`}
+                  className="mt-4 inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-red-500/30 text-sm text-red-400 hover:bg-red-500/10 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                >
+                  <Trash2 size={16} />
+                  {deletingMessage === message.id ? "Deleting..." : "Delete"}
+                </button>
               </div>
             ))}
           </div>

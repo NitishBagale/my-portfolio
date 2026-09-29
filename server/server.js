@@ -1,5 +1,6 @@
 const express = require("express");
 const { registerNavigationRoutes } = require("./navigation-routes");
+const { registerMessageDeleteRoutes } = require("./message-routes");
 const { contentUpdateHandler } = require("./content-update");
 const cors = require("cors");
 const { Pool } = require("pg");
@@ -790,6 +791,7 @@ app.delete(
 ========================= */
 
 registerNavigationRoutes(app, pool, authenticateAdmin);
+registerMessageDeleteRoutes(app, pool, authenticateAdmin);
 
 const PORT = process.env.PORT || 5000;
 
