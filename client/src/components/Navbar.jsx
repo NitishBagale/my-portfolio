@@ -6,7 +6,7 @@ import { usePublicContent } from "../hooks/usePublicContent";
 
 export default function Navbar() {
   const nav = useRef(null);
-  const content = usePublicContent("navbar", defaults.navbar);
+  const { content, ready } = usePublicContent("navbar", defaults.navbar);
   const links = content.links;
   const [activeSection, setActiveSection] = useState("home");
 
@@ -39,6 +39,7 @@ export default function Navbar() {
   }, [links]);
 
   useLayoutEffect(() => {
+    if (!ready) return;
     const media = gsap.matchMedia();
 
     media.add("(prefers-reduced-motion: no-preference)", () => {
@@ -57,10 +58,11 @@ export default function Navbar() {
     });
 
     return () => media.revert();
-  }, []);
+  }, [ready]);
 
   return (
-    <nav ref={nav} className="banner-navigation" aria-label={content.ariaLabel}>
+    <nav ref={nav} className="banner-navigation" aria-label={content.ariaLabel}
+      aria-busy={!ready} style={{ visibility: ready ? undefined : "hidden" }}>
       {links.map(({ label, href }, index) => {
         const id = href.startsWith("#") ? href.slice(1) : null;
 

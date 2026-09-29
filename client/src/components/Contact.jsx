@@ -10,7 +10,7 @@ import Section from "./Section";
 import "./Contact.css";
 
 import { API_URL } from "../config/api";
-import { useCmsContent } from "../hooks/publicCmsContext";
+import { usePublicContent } from "../hooks/usePublicContent";
 
 const defaultContent = {
   topLabel: "CONTACT",
@@ -37,7 +37,7 @@ const defaultContent = {
 };
 
 export default function Contact() {
-  const content = { ...defaultContent, ...useCmsContent("contact") };
+  const { content, ready } = usePublicContent("contact", defaultContent);
   const [status, setStatus] = useState("idle");
   const [feedback, setFeedback] = useState("");
   const submitting = useRef(false);
@@ -105,6 +105,7 @@ export default function Contact() {
   return (
     <Section
       id="contact"
+      ready={ready}
       number="05"
       label={content.topLabel}
       title={

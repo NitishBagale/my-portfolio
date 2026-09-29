@@ -10,7 +10,7 @@ import {
 import "./Footer.css";
 
 export default function Footer() {
-  const content = usePublicContent("footer", defaults.footer);
+  const { content, ready } = usePublicContent("footer", defaults.footer);
   const contact = content;
   const links = content.links;
 
@@ -19,8 +19,8 @@ export default function Footer() {
     : null;
 
   return (
-    <footer className="footer">
-      <div className="container">
+    <footer className="footer" aria-busy={!ready}>
+      <div className="container" style={{ visibility: ready ? undefined : "hidden" }}>
         <div className="footer-main">
           {/* Contact */}
           <div className="footer-contact-details">

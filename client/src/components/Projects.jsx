@@ -2,16 +2,18 @@ import { ArrowUpRight } from "lucide-react";
 import Section from "./Section";
 import "./Project-showcase.css";
 
-import { useCmsContent } from "../hooks/publicCmsContext";
+import { usePublicContent } from "../hooks/usePublicContent";
+import { defaultProjects } from "../data/portfolio-defaults";
 import defaults from "../data/projects-content.json";
 
 export default function Projects() {
-  const content = { ...defaults, ...useCmsContent("projects") };
-  const projects = useCmsContent("projectCards");
+  const { content, ready: headingReady } = usePublicContent("projects", defaults);
+  const { content: projects, ready: cardsReady } = usePublicContent("projectCards", defaultProjects, "/api/projects");
 
   return (
     <Section
       id="projects"
+      ready={headingReady && cardsReady}
       number={content.number}
       label={content.label}
       title={

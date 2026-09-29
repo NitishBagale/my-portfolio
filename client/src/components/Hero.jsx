@@ -1,21 +1,22 @@
 import { normalizeHero } from "../config/content";
-import { useCmsContent } from "../hooks/publicCmsContext";
+import { usePublicContent } from "../hooks/usePublicContent";
 
 import { ArrowUpRight, Mail } from "lucide-react";
 import Navbar from "./Navbar";
 import "./Banner.css";
 
-export default function Hero() {
-  const cmsHero = useCmsContent("hero");
-  const hero = {
+const defaultHero = {
     name: "NITISH BAGALE",
     secondaryButton: "Contact",
     description:
       "I’m a web developer turning ideas into clean, responsive websites. I bring thoughtful design and smooth interactions together to create experiences that feel simple and natural.",
     primaryButton: "View my work",
     buttonUrl: "#projects",
-    ...normalizeHero(cmsHero),
-  };
+};
+
+export default function Hero() {
+  const { content, ready, data } = usePublicContent("hero", defaultHero);
+  const hero = { ...content, ...normalizeHero(data ?? content) };
 
   const titleParts = hero.name.trim().split(/\s+/);
 
@@ -24,9 +25,10 @@ export default function Hero() {
 
   return (
     <>
-      <section id="home" className="photo-banner" aria-label="Nitish portfolio">
+      <section id="home" className="photo-banner" aria-label="Nitish portfolio" aria-busy={!ready}>
         <img
           className="photo-banner-image"
+          style={{ visibility: ready ? undefined : "hidden" }}
           src={hero.image || "/images/nitish.jpg"}
           alt="Nitish Bagale"
           fetchPriority="high"
@@ -54,7 +56,7 @@ export default function Hero() {
 
         <Navbar />
 
-        <div className="banner-introduction">
+        <div className="banner-introduction" style={{ visibility: ready ? undefined : "hidden" }}>
          
           <h1>
             {firstName}

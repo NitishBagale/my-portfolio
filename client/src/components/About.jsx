@@ -1,4 +1,4 @@
-import { useCmsContent } from "../hooks/publicCmsContext";
+import { usePublicContent } from "../hooks/usePublicContent";
 import { useLayoutEffect, useRef } from "react";
 import {
   CodeXml,
@@ -96,13 +96,14 @@ function AboutCurves() {
 export default function About() {
   const sectionRef = useRef(null);
 
-  const about = { ...defaultAbout, ...useCmsContent("about") };
+  const { content: about, ready } = usePublicContent("about", defaultAbout);
 
   /* =========================
      GSAP ANIMATION
   ========================= */
 
   useLayoutEffect(() => {
+    if (!ready) return;
     const media = gsap.matchMedia();
 
     // Leave all content visible when reduced motion is preferred.
@@ -212,7 +213,7 @@ export default function About() {
     );
 
     return () => media.revert();
-  }, []);
+  }, [ready]);
 
   /* =========================
      SPLIT HEADING
@@ -237,11 +238,12 @@ export default function About() {
   return (
     <section
       id="about"
+      aria-busy={!ready}
       className="about-section"
       ref={sectionRef}
       aria-labelledby="about-heading"
     >
-      <div className="about-container">
+      <div className="about-container" style={{ visibility: ready ? undefined : "hidden" }}>
 
         {/* =========================
             CENTER CONTENT

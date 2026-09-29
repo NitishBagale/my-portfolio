@@ -3,9 +3,10 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(ScrollTrigger);
 
-export default function Section({ id, number, label, title, children }) {
+export default function Section({ id, number, label, title, children, ready = true }) {
   const ref = useRef(null);
   useLayoutEffect(() => {
+    if (!ready) return;
     const media = gsap.matchMedia();
     const context = gsap.context(() => {
       media.add("(prefers-reduced-motion: no-preference)", () => {
@@ -55,10 +56,10 @@ export default function Section({ id, number, label, title, children }) {
       media.revert();
       context.revert();
     };
-  }, [id]);
+  }, [id, ready]);
   return (
-    <section id={id} ref={ref} className="section">
-      <div className="container">
+    <section id={id} ref={ref} className="section" aria-busy={!ready}>
+      <div className="container" style={{ visibility: ready ? undefined : "hidden" }}>
         <header className="section-heading">
           <div className="eyebrow">
             <span>{number} /</span> {label}

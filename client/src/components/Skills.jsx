@@ -1,4 +1,4 @@
-import { useCmsContent } from "../hooks/publicCmsContext";
+import { usePublicContent } from "../hooks/usePublicContent";
 import { useState } from "react";
 import { Atom, Wind, GitBranch, Code, ArrowRight } from "lucide-react";
 import "./Skills.css";
@@ -164,7 +164,7 @@ function SkillGroup({ id, label, number, skills }) {
 export default function Skills() {
   const [activeCategory, setActiveCategory] = useState("Frontend");
 
-  const skillsContent = { ...defaultSkills, ...useCmsContent("skills") };
+  const { content: skillsContent, ready } = usePublicContent("skills", defaultSkills);
 
   const {
     topLabel,
@@ -183,10 +183,11 @@ export default function Skills() {
   return (
     <section
       id="skills"
+      aria-busy={!ready}
       className="toolkit-section"
       aria-labelledby="skills-heading"
     >
-      <div className="toolkit-layout">
+      <div className="toolkit-layout" style={{ visibility: ready ? undefined : "hidden" }}>
         <header className="toolkit-introduction">
           <p className="toolkit-eyebrow">
             {topLabel}

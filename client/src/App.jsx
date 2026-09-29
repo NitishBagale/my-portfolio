@@ -5,7 +5,6 @@ import Projects from "./components/Projects";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import BackToTop from "./components/BacktoTop";
-import PublicCmsLoader from "./components/PublicCmsLoader";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import "./layout.css";
@@ -22,7 +21,7 @@ export default function App() {
   }
 
   return (
-    <PublicCmsLoader>
+    <>
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
@@ -37,6 +36,6 @@ export default function App() {
 
       <Footer />
       <BackToTop />
-    </PublicCmsLoader>
+    </>
   );
 }
