@@ -117,6 +117,9 @@ export default function AdminDashboard() {
   ========================= */
 
   const [messages, setMessages] = useState([]);
+  const [messagesLoading, setMessagesLoading] = useState(true);
+  const [messagesError, setMessagesError] = useState("");
+  const [messagesRefresh, setMessagesRefresh] = useState(0);
   const [deletingMessage, setDeletingMessage] = useState(null);
   const [messageDeleteError, setMessageDeleteError] = useState("");
   const [messageDeleteSuccess, setMessageDeleteSuccess] = useState("");
@@ -217,7 +220,6 @@ export default function AdminDashboard() {
           skillsResponse,
           contactResponse,
           projectsResponse,
-          messagesResponse,
         ] = await Promise.all([
           fetch(`${API_URL}/api/admin/content/hero`, {
             headers: authHeaders,
@@ -239,9 +241,6 @@ export default function AdminDashboard() {
             headers: authHeaders,
           }),
 
-          fetch(`${API_URL}/api/messages`, {
-            headers: authHeaders,
-          }),
         ]);
 
         if (
@@ -249,8 +248,7 @@ export default function AdminDashboard() {
           aboutResponse.status === 401 ||
           skillsResponse.status === 401 ||
           contactResponse.status === 401 ||
-          projectsResponse.status === 401 ||
-          messagesResponse.status === 401
+          projectsResponse.status === 401
         ) {
           handleLogout();
           return;
@@ -302,16 +300,6 @@ export default function AdminDashboard() {
           );
         }
 
-        if (messagesResponse.ok) {
-          const data = await messagesResponse.json();
-
-          setMessages(
-            Array.isArray(data)
-              ? data
-              : data.messages || []
-          );
-        }
-
         if (!heroResponse.ok) {
           console.error("Hero request failed");
         }
@@ -332,9 +320,6 @@ export default function AdminDashboard() {
           console.error("Projects request failed");
         }
 
-        if (!messagesResponse.ok) {
-          console.error("Messages request failed");
-        }
       } catch (err) {
         console.error(err);
 
@@ -352,6 +337,46 @@ export default function AdminDashboard() {
 
     fetchData();
   }, [token]);
+
+  // Load messages independently so unrelated CMS failures cannot hide the inbox.
+  useEffect(() => {
+    if (!token || deletingMessage !== null) return;
+    const controller = new AbortController();
+    async function loadMessages() {
+      setMessagesLoading(true);
+      setMessagesError("");
+      try {
+        const response = await fetch(`${API_URL}/api/messages`, {
+          headers: { Authorization: `Bearer ${token}` },
+          signal: controller.signal,
+          cache: "no-store",
+        });
+        if (response.status === 401 || response.status === 403) {
+          throw new Error("Unable to access messages. Please log out and log in again with your admin account.");
+        }
+        if (!response.headers.get("content-type")?.includes("application/json")) {
+          throw new Error(`The message API returned an unexpected response (HTTP ${response.status}). Check the connected backend.`);
+        }
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Unable to load messages.");
+        const inbox = Array.isArray(data) ? data : data.messages;
+        if (!Array.isArray(inbox)) throw new Error("The message API returned an invalid message list.");
+        if (!controller.signal.aborted) setMessages(inbox);
+      } catch (err) {
+        if (!controller.signal.aborted) setMessagesError(err.message);
+      } finally {
+        if (!controller.signal.aborted) setMessagesLoading(false);
+      }
+    }
+    loadMessages();
+    return () => controller.abort();
+  }, [token, messagesRefresh, activePage, deletingMessage]);
+
+  useEffect(() => {
+    const refresh = () => setMessagesRefresh((value) => value + 1);
+    window.addEventListener("focus", refresh);
+    return () => window.removeEventListener("focus", refresh);
+  }, []);
 
   /* =========================
      HERO HANDLERS
@@ -3318,8 +3343,16 @@ export default function AdminDashboard() {
           </p>
           <button
             type="button"
+            onClick={() => setMessagesRefresh((value) => value + 1)}
+            disabled={messagesLoading || deletingMessage !== null}
+            className="mt-4 mr-3 inline-flex items-center px-4 py-2 rounded-xl border border-white/10 text-gray-300 hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          >
+            {messagesLoading ? "Refreshing..." : "Refresh messages"}
+          </button>
+          <button
+            type="button"
             onClick={() => handleMessageDelete()}
-            disabled={messages.length === 0 || deletingMessage !== null}
+            disabled={messages.length === 0 || deletingMessage !== null || messagesLoading || Boolean(messagesError)}
             className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 disabled:opacity-50 disabled:cursor-not-allowed transition"
           >
             <Trash2 size={16} />
@@ -3329,8 +3362,11 @@ export default function AdminDashboard() {
 
         {messageDeleteError && <p role="alert" className="text-red-400">{messageDeleteError}</p>}
         {messageDeleteSuccess && <p role="status" className="text-green-400">{messageDeleteSuccess}</p>}
+        {messagesError && <p role="alert" className="text-red-400">{messagesError}</p>}
 
-        {messages.length === 0 ? (
+        {messages.length === 0 && (messagesLoading || messagesError) ? (
+          messagesLoading ? <p role="status" className="text-gray-400">Loading messages...</p> : null
+        ) : messages.length === 0 ? (
           <div className="bg-[#101010] border border-white/10 rounded-2xl p-10 text-center">
             <Mail
               size={32}
@@ -3384,7 +3420,7 @@ export default function AdminDashboard() {
                 <button
                   type="button"
                   onClick={() => handleMessageDelete(message)}
-                  disabled={deletingMessage !== null}
+                  disabled={deletingMessage !== null || messagesLoading}
                   aria-label={`Delete message from ${message.name}`}
                   className="mt-4 inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-red-500/30 text-sm text-red-400 hover:bg-red-500/10 disabled:opacity-50 disabled:cursor-not-allowed transition"
                 >
